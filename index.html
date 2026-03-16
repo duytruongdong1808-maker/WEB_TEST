@@ -1,43 +1,223 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
-    <title>Website đầu tiên</title>
-    <style>
-        body{
-            font-family: Arial;
-            text-align: center;
-            background: #f2f2f2;
-            padding-top: 100px;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Todo Web Động</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 40px 20px;
+    }
 
-        h1{
-            color: #2c3e50;
-        }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    }
 
-        button{
-            padding: 10px 20px;
-            font-size: 16px;
-            background: #3498db;
-            color: white;
-            border: none;
-            border-radius: 5px;
-        }
-    </style>
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    input {
+      flex: 1;
+      padding: 12px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+    }
+
+    button {
+      padding: 12px 16px;
+      font-size: 16px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    .add-btn {
+      background: #2563eb;
+      color: white;
+    }
+
+    .clear-btn {
+      background: #dc2626;
+      color: white;
+      margin-top: 15px;
+      width: 100%;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f8fafc;
+      padding: 12px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+
+    .task-text.done {
+      text-decoration: line-through;
+      color: #888;
+    }
+
+    .task-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .small-btn {
+      padding: 8px 10px;
+      font-size: 14px;
+    }
+
+    .done-btn {
+      background: #16a34a;
+      color: white;
+    }
+
+    .delete-btn {
+      background: #ef4444;
+      color: white;
+    }
+
+    .empty {
+      text-align: center;
+      color: #888;
+      margin-top: 20px;
+    }
+
+    .counter {
+      margin-bottom: 15px;
+      color: #444;
+      font-size: 15px;
+    }
+  </style>
 </head>
-
 <body>
+  <div class="container">
+    <h1>Todo List Web Động</h1>
 
-<h1>Xin chào Internet 🚀</h1>
+    <div class="input-group">
+      <input type="text" id="taskInput" placeholder="Nhập công việc..." />
+      <button class="add-btn" onclick="addTask()">Thêm</button>
+    </div>
 
-<p>Đây là website đầu tiên của tôi chạy trên GitHub Pages</p>
+    <div class="counter" id="counter">Tổng: 0 việc</div>
 
-<button onclick="hello()">Click me</button>
+    <ul id="taskList"></ul>
+    <p class="empty" id="emptyMessage">Chưa có công việc nào.</p>
 
-<script>
-function hello(){
-    alert("Website của bạn đang chạy!");
-}
-</script>
+    <button class="clear-btn" onclick="clearAll()">Xóa tất cả</button>
+  </div>
 
+  <script>
+    let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
+    function saveTasks() {
+      localStorage.setItem("tasks", JSON.stringify(tasks));
+    }
+
+    function renderTasks() {
+      const taskList = document.getElementById("taskList");
+      const emptyMessage = document.getElementById("emptyMessage");
+      const counter = document.getElementById("counter");
+
+      taskList.innerHTML = "";
+
+      if (tasks.length === 0) {
+        emptyMessage.style.display = "block";
+      } else {
+        emptyMessage.style.display = "none";
+      }
+
+      tasks.forEach((task, index) => {
+        const li = document.createElement("li");
+
+        li.innerHTML = `
+          <span class="task-text ${task.done ? "done" : ""}">${task.text}</span>
+          <div class="task-actions">
+            <button class="small-btn done-btn" onclick="toggleDone(${index})">
+              ${task.done ? "Bỏ xong" : "Hoàn thành"}
+            </button>
+            <button class="small-btn delete-btn" onclick="deleteTask(${index})">
+              Xóa
+            </button>
+          </div>
+        `;
+
+        taskList.appendChild(li);
+      });
+
+      const doneCount = tasks.filter(task => task.done).length;
+      counter.textContent = `Tổng: ${tasks.length} việc | Hoàn thành: ${doneCount}`;
+    }
+
+    function addTask() {
+      const taskInput = document.getElementById("taskInput");
+      const text = taskInput.value.trim();
+
+      if (text === "") {
+        alert("Vui lòng nhập công việc.");
+        return;
+      }
+
+      tasks.push({ text: text, done: false });
+      saveTasks();
+      renderTasks();
+      taskInput.value = "";
+      taskInput.focus();
+    }
+
+    function toggleDone(index) {
+      tasks[index].done = !tasks[index].done;
+      saveTasks();
+      renderTasks();
+    }
+
+    function deleteTask(index) {
+      tasks.splice(index, 1);
+      saveTasks();
+      renderTasks();
+    }
+
+    function clearAll() {
+      if (tasks.length === 0) return;
+      const confirmDelete = confirm("Bạn có chắc muốn xóa tất cả?");
+      if (confirmDelete) {
+        tasks = [];
+        saveTasks();
+        renderTasks();
+      }
+    }
+
+    document.getElementById("taskInput").addEventListener("keypress", function(event) {
+      if (event.key === "Enter") {
+        addTask();
+      }
+    });
+
+    renderTasks();
+  </script>
 </body>
 </html>
